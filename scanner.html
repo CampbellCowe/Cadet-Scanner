@@ -31,7 +31,6 @@
           return;
         }
 
-        // Use best available camera (usually back camera)
         const cameraId = cameras[cameras.length - 1].id;
 
         scanner = new Html5Qrcode("reader");
@@ -39,10 +38,13 @@
         await scanner.start(
           cameraId,
           {
-            fps: 10,
-            qrbox: 250,
-            experimentalFeatures: {
-              useBarCodeDetectorIfSupported: true
+            fps: 15,
+            qrbox: { width: 250, height: 250 },
+
+            // 📌 Autofocus + better camera behaviour
+            videoConstraints: {
+              facingMode: "environment",
+              focusMode: "continuous"
             }
           },
           qr => {
