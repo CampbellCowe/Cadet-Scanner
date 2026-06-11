@@ -9,7 +9,11 @@
 
   <h2>Cadet Attendance Scanner</h2>
 
-  <div id="reader" style="width:300px; margin:auto;"></div>
+  <button onclick="startScanner()" style="font-size:18px; padding:10px;">
+    Start Scan
+  </button>
+
+  <div id="reader" style="width:300px; margin:auto; margin-top:20px;"></div>
 
   <div id="result" style="margin-top:20px;"></div>
 
@@ -18,20 +22,13 @@
 
     async function startScanner() {
       try {
-        const cameras = await Html5Qrcode.getCameras();
-
-        if (!cameras.length) {
-          document.getElementById("result").innerHTML =
-            "No camera found";
-          return;
-        }
-
-        const cameraId = cameras[0].id;
+        document.getElementById("result").innerHTML = "Starting camera...";
 
         scanner = new Html5Qrcode("reader");
 
-        scanner.start(
-          cameraId,
+        // ✅ BEST METHOD: forces rear camera on mobile
+        await scanner.start(
+          { facingMode: "environment" },
           {
             fps: 10,
             qrbox: 250
@@ -59,22 +56,18 @@
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({
-          qr: qr
-        })
+        body: JSON.stringify({ qr: qr })
       })
-      .then(response => response.text())
-      .then(data => {
+      .then(res => res.text())
+      .then(() => {
         document.getElementById("result").innerHTML =
-          "Attendance logged for: " + qr;
+          "Attendance logged: " + qr;
       })
-      .catch(error => {
+      .catch(() => {
         document.getElementById("result").innerHTML =
           "Error sending attendance";
       });
     }
-
-    startScanner();
   </script>
 
 </body>
