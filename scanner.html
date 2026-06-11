@@ -19,6 +19,8 @@
 
   <script>
     let scanner;
+    let lastScan = "";
+    let scanCooldown = false;
 
     async function startScanner() {
       try {
@@ -40,8 +42,6 @@
           {
             fps: 15,
             qrbox: { width: 250, height: 250 },
-
-            // 📌 Autofocus + better camera behaviour
             videoConstraints: {
               facingMode: "environment",
               focusMode: "continuous"
@@ -49,12 +49,22 @@
           },
           qr => {
 
+            // 🔥 prevent duplicate scans
+            if (scanCooldown) return;
+            if (qr === lastScan) return;
+
+            lastScan = qr;
+            scanCooldown = true;
+
             document.getElementById("result").innerHTML =
               "Scanned: " + qr;
 
-            scanner.stop();
-
             sendToSheet(qr);
+
+            // cooldown reset
+            setTimeout(() => {
+              scanCooldown = false;
+            }, 2000);
           }
         );
 
@@ -75,7 +85,7 @@
       .then(res => res.text())
       .then(() => {
         document.getElementById("result").innerHTML =
-          "Attendance logged: " + qr;
+          "Logged: " + qr;
       })
       .catch(() => {
         document.getElementById("result").innerHTML =
