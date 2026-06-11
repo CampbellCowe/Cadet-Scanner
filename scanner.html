@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Cadet Scanner</title>
+  <script src="https://unpkg.com/html5-qrcode"></script>
+</head>
+
+<body style="font-family: Arial; text-align:center; padding-top:20px;">
+
+  <h2>Cadet Attendance Scanner</h2>
+
+  <div id="reader" style="width:300px; margin:auto;"></div>
+
+  <div id="result" style="margin-top:20px;"></div>
+
+  <script>
+    let scanner;
+
+    async function startScanner() {
+      try {
+        const cameras = await Html5Qrcode.getCameras();
+
+        if (!cameras.length) {
+          document.getElementById("result").innerHTML =
+            "No camera found";
+          return;
+        }
+
+        const cameraId = cameras[0].id;
+
+        scanner = new Html5Qrcode("reader");
+
+        scanner.start(
+          cameraId,
+          {
+            fps: 10,
+            qrbox: 250
+          },
+          qr => {
+
+            scanner.stop();
+
+            document.getElementById("result").innerHTML =
+              "Scanned: " + qr;
+
+            sendToSheet(qr);
+          }
+        );
+
+      } catch (err) {
+        document.getElementById("result").innerHTML =
+          "Camera error: " + err;
+      }
+    }
+
+    function sendToSheet(qr) {
+      fetch("https://script.google.com/macros/s/AKfycbyvA8slZ2Jy3RlieZ3hfYzNKpdhEDANaSjTPJCthVpO88hhXZ0IM78NKrsI-PnfOUSMwA/exec", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          qr: qr
+        })
+      })
+      .then(response => response.text())
+      .then(data => {
+        document.getElementById("result").innerHTML =
+          "Attendance logged for: " + qr;
+      })
+      .catch(error => {
+        document.getElementById("result").innerHTML =
+          "Error sending attendance";
+      });
+    }
+
+    startScanner();
+  </script>
+
+</body>
+</html>
